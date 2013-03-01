@@ -3,7 +3,7 @@ Contributors: Bloafer
 Plugin Name: Posts to Page
 Plugin URI: http://studio.bloafer.com/wordpress-plugins/posts-to-page/
 Description: Posts to page, shortcode [posts-to-page].
-Version: 1.5
+Version: 1.6
 Author: Kerry James
 Author URI: http://studio.bloafer.com/
 Donate link: http://studio.bloafer.com/wordpress-plugins/posts-to-page/
@@ -40,13 +40,16 @@ You can install from within WordPress using the Plugin/Add New feature, or if yo
 == Common Usage ==
 
 Show top 10 posts in "Uncategorized" category, without images and comma seperated category and tag list
+
 [posts-to-page limit=10 category=uncategorized tag_categories_wrap="div" sep_categories=", " tag_tags_wrap="div" sep_tags=", " show_image=false]
 
 
 Show top 10 posts with bullet pointed categories and tags
+
 [posts-to-page limit=10 tag_categories_wrap="ul" tag_categories="li" tag_tags_wrap="ul" tag_tags="li"]
 
 Image gallery type posts, this will produce a list of image linked posts with images sized to 300x300
+
 [posts-to-page show_title=false show_date=false show_author=false show_content=false show_categories=false show_tags=false image_size="300x300"]
 
 == Frequently Asked Questions ==
@@ -100,6 +103,11 @@ You need to use the "display_sequence" variable ([posts-to-page cat_id=1 display
 Please visit http://studio.bloafer.com/wordpress-plugins/posts-to-page/ you can find in-depth tutorials.
 
 == Changelog ==
+
+= 1.6 =
+This update adds the debug option, this allows remote debugging of the Posts to Page and fixes an image bug
+
+* the "category" variable no supports multiple categories [posts-to-page category="1,2,3"] or [posts-to-page category="uncategorized,foo,bar"]
 
 = 1.5 =
 This update adds a massive amount of functionality to improve your Posts to Page life

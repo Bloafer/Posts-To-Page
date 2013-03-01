@@ -3,7 +3,7 @@
 Plugin Name: Posts to Page
 Plugin URI: http://studio.bloafer.com/wordpress-plugins/posts-to-page/
 Description: Posts to page, shortcode [posts-to-page]. Usage [posts-to-page cat_id=1]
-Version: 1.5
+Version: 1.6
 Author: Kerry James
 Author URI: http://studio.bloafer.com/
 */
@@ -67,6 +67,7 @@ function post_to_page_shortcode_handler( $args, $content = null ){
         "sep_tags"              => false,
         "pre_categories"        => "Posted in: ",
         "pre_tags"              => "Tagged in: ",
+        "debug"                 => false,
     );
 
     $displaySequence = explode(",", $dataFlags["display_sequence"]);
@@ -97,29 +98,65 @@ function post_to_page_shortcode_handler( $args, $content = null ){
         }
     }
 
+    $debug = $dataFlags["debug"]?true:false;
+
+    if($debug && (isset($_GET["ptp"]["debug"]) || isset($_GET["ptp"]["settings"]))){
+        if($_GET["ptp"]["debug"]=="ds"){
+            die("<pre>Display Sequence" . PHP_EOL . print_r($displaySequence, true) . "</pre>");
+        }
+        if(isset($_GET["ptp"]["settings"])){
+            $debugSettings = json_decode($_GET["ptp"]["settings"], true);
+            if(isset($debugSettings["bf"])){
+                foreach($debugSettings["bf"] as $k=>$v){
+                    $boolFlags[$k] = $v;
+                }
+            }
+            if(isset($debugSettings["df"])){
+                foreach($debugSettings["df"] as $k=>$v){
+                    $dataFlags[$k] = $v;
+                }
+            }
+        }
+    }
+
     /* Start processing */
     if($dataFlags["cat_id"] || $dataFlags["category"]){
         $categoryVar = $dataFlags["category"]?$dataFlags["category"]:$dataFlags["cat_id"];
-        if(is_numeric($categoryVar)){
-            $post_args['category']       = $categoryVar;
-        }else{
-            $categoryVar = trim($categoryVar, "/");
-            $taxonomy = "category";
-            if(strstr($categoryVar, "/")){
-                $catParts = explode("/", $categoryVar);
-                if(count($catParts)==2){
-                    $taxonomy = $catParts[0];
-                    $categoryVar = $catParts[1];
-                }
+        $categories = explode(",", $categoryVar);
+        if($debug && (isset($_GET["ptp"]["debug"]) || isset($_GET["ptp"]["settings"]))){
+            if($_GET["ptp"]["debug"]=="ct"){
+                die("<pre>Categories" . PHP_EOL . print_r($categories, true) . "</pre>");
             }
-            $post_args['tax_query'][] = array(
-                'taxonomy' => $taxonomy,
-                'field' => 'slug',
-                'terms' => $categoryVar
-            );
+        }
+        foreach($categories as $categoryRoute){
+            $categoryRoute = trim($categoryRoute, "/");
+            $taxonomy = "category";
+            if(is_numeric($categoryRoute)){
+                $post_args['tax_query'][] = array(
+                    'taxonomy' => $taxonomy,
+                    'field' => 'id',
+                    'terms' => $categoryRoute
+                );
+            }else{
+                if(strstr($categoryRoute, "/")){
+                    $catParts = explode("/", $categoryRoute);
+                    if(count($catParts)==2){
+                        $taxonomy = $catParts[0];
+                        $categoryRoute = $catParts[1];
+                    }
+                }
+                $post_args['tax_query'][] = array(
+                    'taxonomy' => $taxonomy,
+                    'field' => 'slug',
+                    'terms' => $categoryRoute
+                );
+            }
+        }
+        if(count($post_args['tax_query'])>=2){
+            $post_args['tax_query']['relation'] = 'OR';
         }
     }
-    $post_args['post_type']     = $postType;
+    $post_args['post_type']     = $dataFlags["type"];
 
     if($dataFlags["limit"]){
         $post_args["numberposts"] = $dataFlags["limit"];
@@ -137,7 +174,31 @@ function post_to_page_shortcode_handler( $args, $content = null ){
         $post_args["suppress_filters"] = $dataFlags["suppress_filters"];
     }
 
+    if($debug && isset($_GET["ptp"]["debug"])){
+        if($_GET["ptp"]["debug"]=="pa"){
+            die("<pre>Post Args" . PHP_EOL . print_r($post_args, true) . "</pre>");
+        }
+        if($_GET["ptp"]["debug"]=="df"){
+            die("<pre>Data Flags" . PHP_EOL . print_r($dataFlags, true) . "</pre>");
+        }
+        if($_GET["ptp"]["debug"]=="bf"){
+            die("<pre>Bool Flags" . PHP_EOL . print_r($boolFlags, true) . "</pre>");
+        }
+        if($_GET["ptp"]["debug"]=="ss"){
+            $o = "[posts-to-page ";
+            foreach($args as $k=>$v){ $o .= $k . '="' . $v . '" ';}
+            $o = trim($o) . "]";
+            die("<pre>Show shortcode" . PHP_EOL . $o . "</pre>");
+        }
+    }
+
     $displayposts = get_posts($post_args);
+
+    if($debug && isset($_GET["ptp"]["debug"])){
+        if($_GET["ptp"]["debug"]=="dp"){
+            die("<pre>Display posts" . PHP_EOL . print_r($displayposts, true) . "</pre>");
+        }
+    }
 
     foreach($displayposts as $post){
         if($dataFlags["tag_wrap"]){
@@ -254,22 +315,24 @@ function post_to_page_shortcode_handler( $args, $content = null ){
             }
             if($displaySequenceItem=="image"){
                 if($boolFlags["show_image"]){
-                    $imageSizes = false;
-                    if($dataFlags["image_size"]){
-                        $testImageSizes = explode("x", strtolower($dataFlags["image_size"]));
-                        if(count($testImageSizes)==2){
-                            $imageSizes = $testImageSizes;
+                    if(function_exists("get_the_post_thumbnail")){
+                        $imageSizes = false;
+                        if($dataFlags["image_size"]){
+                            $testImageSizes = explode("x", strtolower($dataFlags["image_size"]));
+                            if(count($testImageSizes)==2){
+                                $imageSizes = $testImageSizes;
+                            }
                         }
+                        $html .= '<' . $dataFlags["tag_image"] . ' class="' . $dataFlags["class_image"] . '">';
+                        if($boolFlags["link_image"]){ $html .= '<a href="' . get_permalink($post->ID) . '">'; }
+                        if($imageSizes){
+                            $html .= get_the_post_thumbnail($post->ID, $imageSizes);
+                        }else{
+                            $html .= get_the_post_thumbnail($post->ID);
+                        }
+                        if($boolFlags["link_image"]){ $html .= '</a>'; }
+                        $html .= '</' . $dataFlags["tag_image"] . '>' . PHP_EOL;
                     }
-                    $html .= '<' . $dataFlags["tag_image"] . ' class="' . $dataFlags["class_image"] . '">';
-                    if($boolFlags["link_image"]){ $html .= '<a href="' . get_permalink($post->ID) . '">'; }
-                    if($imageSizes){
-                        $html .= get_the_post_thumbnail($post->ID, $imageSizes);
-                    }else{
-                        $html .= get_the_post_thumbnail($post->ID);
-                    }
-                    if($boolFlags["link_image"]){ $html .= '</a>'; }
-                    $html .= '</' . $dataFlags["tag_image"] . '>' . PHP_EOL;
                 }
             }
         }
