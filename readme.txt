@@ -3,7 +3,7 @@ Contributors: Bloafer
 Plugin Name: Posts to Page
 Plugin URI: http://studio.bloafer.com/wordpress-plugins/posts-to-page/
 Description: Posts to page, shortcode [posts-to-page].
-Version: 1.6
+Version: 1.7
 Author: Kerry James
 Author URI: http://studio.bloafer.com/
 Donate link: http://studio.bloafer.com/wordpress-plugins/posts-to-page/
@@ -98,16 +98,44 @@ You need to use the variable "type" ([posts-to-page cat_id=1 type=gallery])
 
 You need to use the "display_sequence" variable ([posts-to-page cat_id=1 display_sequence=title,date,author,content])
 
+= How do I display a template file =
+
+You need to use the "use_template_file" variable, although this is experimental it could work really well ([posts-to-page use_template_file="content"])
+
 = I have read all of these, but need more help =
 
 Please visit http://studio.bloafer.com/wordpress-plugins/posts-to-page/ you can find in-depth tutorials.
 
 == Changelog ==
 
+= 1.7 =
+This update adds a few new features that have been requested from the commuinity and adds a few new features that we thought you would like.
+
+* Added "show_custom" variable
+* Added "class_custom_value" variable
+* Added "class_custom_key" variable
+* Added "sep_custom_key_value" variable
+* Added "sep_custom_value" variable
+* Added "show_comment_count" variable
+* Added "class_comment_count" variable
+* Added "tag_comment_count" variable
+* Added "text_comment_count_s" variable
+* Added "text_comment_count_p" variable
+* Added "specific_id" variable
+* Added "not_in_category" variable
+* Added "show_separator" variable
+* Added "class_separator" variable
+* Added "tag_separator" variable
+* Added "show_readmore" variable
+* Added "class_readmore" variable
+* Added "tag_readmore" variable
+* Added "text_readmore" variable
+* Added "use_template_file" variable, this is experimental and does work with default themes.
+
 = 1.6 =
 This update adds the debug option, this allows remote debugging of the Posts to Page and fixes an image bug
 
-* the "category" variable no supports multiple categories [posts-to-page category="1,2,3"] or [posts-to-page category="uncategorized,foo,bar"]
+* the "category" variable now supports multiple categories [posts-to-page category="1,2,3"] or [posts-to-page category="uncategorized,foo,bar"]
 
 = 1.5 =
 This update adds a massive amount of functionality to improve your Posts to Page life
